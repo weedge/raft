@@ -89,6 +89,28 @@ type Storage interface {
 	Snapshot() (pb.Snapshot, error)
 }
 
+type IExtRaftStorage interface {
+	Storage
+	// Close close the Storage file
+	Close()
+	// ApplySnapshot overwrites the contents of this Storage object with
+	// those of the given snapshot.
+	ApplySnapshot(snap pb.Snapshot) error
+	// SetHardState saves the current HardState.
+	SetHardState(st pb.HardState) error
+	// CreateSnapshot makes a snapshot which can be retrieved with Snapshot() and
+	// can be used to reconstruct the state at that point.
+	// If any configuration changes have been made since the last compaction,
+	// the result of the last ApplyConfChange must be passed in.
+	CreateSnapshot(i uint64, cs *pb.ConfState, data []byte) (pb.Snapshot, error)
+	// Compact discards all log entries prior to compactIndex.
+	// It is the application's responsibility to not attempt to compact an index
+	// greater than raftLog.applied.
+	Compact(compactIndex uint64) error
+	// SetHardState saves the current HardState.
+	Append(entries []pb.Entry) error
+}
+
 type inMemStorageCallStats struct {
 	initialState, firstIndex, lastIndex, entries, term, snapshot int
 }
@@ -308,3 +330,5 @@ func (ms *MemoryStorage) Append(entries []pb.Entry) error {
 	}
 	return nil
 }
+
+func (ms *MemoryStorage) Close() {}
