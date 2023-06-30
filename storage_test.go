@@ -245,3 +245,10 @@ func TestStorageApplySnapshot(t *testing.T) {
 	tt = tests[i]
 	require.Equal(t, ErrSnapOutOfDate, s.ApplySnapshot(tt))
 }
+
+func TestMemoryStorageImplements(t *testing.T) {
+	var i interface{} = &MemoryStorage{}
+	if _, ok := i.(IExtRaftStorage); !ok {
+		t.Fatalf("MemoryStorage does not implement IExtRaftStorage")
+	}
+}
